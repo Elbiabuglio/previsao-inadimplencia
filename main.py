@@ -1,11 +1,7 @@
-from src.database import get_connection
+from src.database import load_training_data
 
 if __name__ == "__main__":
-    conn = get_connection()
-    cursor = conn.cursor()
+    df = load_training_data()
 
-    cursor.execute("SELECT name FROM sys.databases;")
-    for row in cursor.fetchall():
-        print(row[0])
-
-    conn.close()
+    print("Shape:", df.shape)
+    print(df.head())
