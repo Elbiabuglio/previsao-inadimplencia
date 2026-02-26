@@ -4,10 +4,17 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-
 def preprocess_data(df: pd.DataFrame):
     """
     Realiza o pré-processamento dos dados para modelagem.
+
+    Etapas:
+    1. Criação de variáveis derivadas (engenharia de features)
+    2. Seleção de colunas relevantes
+    3. Tratamento da variável alvo
+    4. Tratamento de datas
+    5. Tratamento de valores ausentes
+    6. One-Hot Encoding para variáveis categóricas
     """
 
     try:
@@ -17,8 +24,6 @@ def preprocess_data(df: pd.DataFrame):
         # =====================================================
         # 1. Criação de variáveis derivadas (engenharia de features)
         # =====================================================
-
-        # Criar faixa de valor financiado
         if 'VALOR_FINANCIAMENTO' in df.columns:
             df['FAIXA_VALOR_FINANCIADO'] = pd.cut(
                 df['VALOR_FINANCIAMENTO'],
@@ -26,7 +31,6 @@ def preprocess_data(df: pd.DataFrame):
                 labels=['Muito_Baixo', 'Baixo', 'Medio', 'Alto', 'Muito_Alto']
             )
 
-        # Criar faixa de prazo
         if 'PRAZO_FINANCIAMENTO' in df.columns:
             df['FAIXA_PRAZO_FINANCIAMENTO'] = pd.cut(
                 df['PRAZO_FINANCIAMENTO'],
@@ -37,7 +41,6 @@ def preprocess_data(df: pd.DataFrame):
         # =====================================================
         # 2. Seleção de colunas relevantes
         # =====================================================
-
         colunas_relevantes = [
             'TAXA_AO_ANO',
             'CIDADE_CLIENTE',
@@ -59,7 +62,6 @@ def preprocess_data(df: pd.DataFrame):
         ]
 
         colunas_faltantes = set(colunas_relevantes) - set(df.columns)
-
         if colunas_faltantes:
             logger.warning(f"Colunas ausentes ignoradas: {colunas_faltantes}")
 
@@ -69,7 +71,6 @@ def preprocess_data(df: pd.DataFrame):
         # =====================================================
         # 3. Tratamento da variável alvo
         # =====================================================
-
         if "INADIMPLENTE_COBRANCA" not in df.columns:
             raise ValueError("Variável alvo não encontrada no dataset.")
 
@@ -78,7 +79,7 @@ def preprocess_data(df: pd.DataFrame):
             .astype(str)
             .str.upper()
             .str.strip()
-            .map({"SIM": 1, "NAO": 0})
+            .map({"SIM": 1, "NAO": 0})  # Mantemos target numérica para treino
         )
 
         if df["INADIMPLENTE_COBRANCA"].isna().sum() > 0:
@@ -90,10 +91,8 @@ def preprocess_data(df: pd.DataFrame):
         # =====================================================
         # 4. Tratamento de datas
         # =====================================================
-
         hoje = datetime.today()
         datetime_cols = df.select_dtypes(include=["datetime64[ns]"]).columns
-
         for col in datetime_cols:
             df[f"{col}_dias"] = (hoje - df[col]).dt.days
             df.drop(columns=[col], inplace=True)
@@ -101,7 +100,6 @@ def preprocess_data(df: pd.DataFrame):
         # =====================================================
         # 5. Tratamento de valores ausentes
         # =====================================================
-
         # Numéricas
         num_cols = df.select_dtypes(include=["int64", "float64"]).columns
         df[num_cols] = df[num_cols].fillna(df[num_cols].median())
@@ -111,10 +109,9 @@ def preprocess_data(df: pd.DataFrame):
         df[cat_cols] = df[cat_cols].fillna("DESCONHECIDO")
 
         # =====================================================
-        # 6. One-Hot Encoding
+        # 6. One-Hot Encoding (somente preditoras categóricas)
         # =====================================================
-
-        df = pd.get_dummies(df, drop_first=True)
+        df = pd.get_dummies(df, columns=cat_cols, drop_first=True)
 
         X = df
 
