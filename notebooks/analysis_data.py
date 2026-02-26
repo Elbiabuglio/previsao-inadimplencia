@@ -1,7 +1,7 @@
 from src.database import load_training_data
-from src.preprocessing import preprocess
+from src.preprocessing import preprocess_data
 
 df = load_training_data()
-df = preprocess(df)
+df = preprocess_data(df)
 
 df.head()
