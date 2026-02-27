@@ -6,7 +6,8 @@ if __name__ == "__main__":
     df = load_training_data()
     X, y = preprocess_data(df)
 
-    model, X_test, y_test = train_model(X, y)
+    # Treinamento com balanceamento SMOTE
+    model, X_test, y_test = train_model(X, y, apply_smote=True)
     evaluate_model(model, X_test, y_test)
 
     save_model(model)

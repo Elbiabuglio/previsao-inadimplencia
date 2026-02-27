@@ -15,6 +15,7 @@ def preprocess_data(df: pd.DataFrame):
     4. Tratamento de datas
     5. Tratamento de valores ausentes
     6. One-Hot Encoding para variáveis categóricas
+    7. Separação de preditoras (X) e target (y)
     """
 
     try:
@@ -22,7 +23,7 @@ def preprocess_data(df: pd.DataFrame):
         df = df.copy()
 
         # =====================================================
-        # 1. Criação de variáveis derivadas (engenharia de features)
+        # 1. Criação de variáveis derivadas
         # =====================================================
         if 'VALOR_FINANCIAMENTO' in df.columns:
             df['FAIXA_VALOR_FINANCIADO'] = pd.cut(
@@ -79,7 +80,7 @@ def preprocess_data(df: pd.DataFrame):
             .astype(str)
             .str.upper()
             .str.strip()
-            .map({"SIM": 1, "NAO": 0})  # Mantemos target numérica para treino
+            .map({"SIM": 1, "NAO": 0})
         )
 
         if df["INADIMPLENTE_COBRANCA"].isna().sum() > 0:
@@ -100,11 +101,9 @@ def preprocess_data(df: pd.DataFrame):
         # =====================================================
         # 5. Tratamento de valores ausentes
         # =====================================================
-        # Numéricas
         num_cols = df.select_dtypes(include=["int64", "float64"]).columns
         df[num_cols] = df[num_cols].fillna(df[num_cols].median())
 
-        # Categóricas
         cat_cols = df.select_dtypes(include=["object", "category"]).columns
         df[cat_cols] = df[cat_cols].fillna("DESCONHECIDO")
 
@@ -113,7 +112,10 @@ def preprocess_data(df: pd.DataFrame):
         # =====================================================
         df = pd.get_dummies(df, columns=cat_cols, drop_first=True)
 
-        X = df
+        # =====================================================
+        # 7. Separação final de preditoras (X) e target (y)
+        # =====================================================
+        X = df.copy()
 
         logger.info(f"Pré-processamento finalizado. X: {X.shape}, y: {y.shape}")
         logger.info(f"Total de NaNs restantes: {X.isna().sum().sum()}")
