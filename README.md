@@ -1,5 +1,4 @@
-Vou adicionar essa seção ao README.md. Vou criar uma versão atualizada do documento:
-markdown# 📊 Previsão de Inadimplência
+📊 Previsão de Inadimplência
 
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
 [![Build Status](https://img.shields.io/badge/build-pipeline%20local-green.svg)]()
