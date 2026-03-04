@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      SA_PASSWORD: ${SA_PASSWORD}           # senha do SQL Server, do .env
+      ACCEPT_EULA: "Y"
+      MSSQL_AGENT_ENABLED: "true"
+    ports:
+      - "${DB_PORT}:1433"                   # porta do host mapeada para o container
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    restart: unless-stopped
+
+  jupyter:
+    image: jupyter/datascience-notebook:latest
+    container_name: jupyter
+    ports:
+      - "8888:8888"                         # Jupyter acessível pelo navegador
+    volumes:
+      - ./:/home/jovyan/work                # mapeia seu projeto para dentro do container
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - DB_HOST=${DB_HOST}                  # variáveis de conexão do banco
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME}
+    depends_on:
+      - sqlserver
+    restart: unless-stopped
+
+volumes:
+  sqlserver-data:
